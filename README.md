@@ -1,4 +1,4 @@
-<img src="https://raw.github.com/t04glovern/cloudy-toast/master/img/project-banner.jpg" data-canonical-src="https://raw.github.com/t04glovern/toastuino/master/img/project-banner.jpg" align="center"/>
+<img src="https://raw.github.com/t04glovern/cloudy-toast/master/img/project-banner.jpg" data-canonical-src="https://raw.github.com/t04glovern/cloudy-toast/master/img/project-banner.jpg" align="center"/>
 
 <div align = "center">
     <h1><em>Cloudy with a chance of Toast</em></h1>
