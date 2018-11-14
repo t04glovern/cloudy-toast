@@ -6,8 +6,27 @@
 
 #include "main.h"
 
+#define PWMRANGE 1023
+
+const byte pinCount = 8;
+const byte ledPins[pinCount] = {D1, D2, D3, D4, D5, D6, D7, D8};
+
+const byte colourCount = 4;
+String colours[colourCount] = {"Red", "Yellow", "Green", "Blue"};
+
+const byte messageCount = 4;
+String messages[messageCount] = {
+    "Kill all humans",
+    "You're toast!",
+    "You breader watch out...",
+    "I'm the yeast of your worries"
+};
+
+int led = 1;
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
+    Serial.println();
     Serial.print("[AWS] Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -15,6 +34,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     {
         Serial.print((char)payload[i]);
     }
+    Serial.println();
     Serial.println();
 }
 
@@ -31,6 +51,15 @@ void working_led()
     digitalWrite(LED_BUILTIN, LOW);  // turn the LED off by making the voltage LOW
     delay(50);
 }
+
+void turnOnLED(const byte which)
+{
+    for (byte i = 0; i < pinCount; i++)
+        analogWrite(ledPins[i], 0);
+
+    if (which > 1)
+        analogWrite(ledPins[which - 2], 1023); // make "which" zero-relative
+} // end of turnOnLED
 
 void setup_wifi()
 {
@@ -152,6 +181,7 @@ void setup()
     setup_certs();
     delay(200);
     aws_reconnect();
+    delay(200);
 }
 
 void loop()
@@ -163,17 +193,28 @@ void loop()
 
     client.loop();
 
-    if (tick >= 10) // publish to topic every 10 seconds
+    if (tick >= 10) // publish to topic every 1 seconds
     {
+        if (led > pinCount + 1)
+            led = 1;
+
+        turnOnLED(led++);
+
         tick = 0;
         working_led();
+
+        String colour1 = colours[random(0, colourCount)];
+        String colour2 = colours[random(0, colourCount)];
+        String message = messages[random(0, messageCount)];
 
         const size_t bufferSize = JSON_OBJECT_SIZE(12) + 20;
         DynamicJsonBuffer jsonBuffer(bufferSize);
 
         JsonObject &root = jsonBuffer.createObject();
-        JsonArray &data = root.createNestedArray("demo");
-        data.add("hello world");
+        root["message"] = message;
+        JsonArray &colours = root.createNestedArray("colours");
+        colours.add(colour1);
+        colours.add(colour2);
 
         String json_output;
 
@@ -187,6 +228,6 @@ void loop()
         Serial.println(payload);
         client.publish(aws_mqtt_thing_topic_pub, payload);
     }
-    delay(1000);
+    delay(100);
     tick++;
 }
